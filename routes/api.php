@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use App\Models\{Product,Category,PreorderSchedule};
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Admin\CrudController;
+use App\Http\Controllers\Auth\ApiTokenController;
 Route::get('/ping',fn()=>['ok'=>true]);
 Route::get('/settings',fn()=>['delivery_enabled'=>config('meal.delivery_enabled'),'delivery_fee'=>max(0,(int)config('meal.delivery_fee'))]);
 Route::get('/catalog',fn()=>Product::with('category')->where('is_available',true)->orderBy('name')->get());
@@ -13,7 +14,10 @@ Route::post('/quote',function(Request $r,\App\Services\QuoteService $quote){
 })->middleware('throttle:30,1');
 Route::get('/categories',fn()=>Category::orderBy('name')->get());
 Route::get('/schedules',fn()=>PreorderSchedule::where('status','open')->where('start_at','<=',now())->where('end_at','>',now())->where(fn($q)=>$q->whereNull('fulfillment_at')->orWhere('fulfillment_at','>',now()))->get());
+Route::post('/register',[ApiTokenController::class,'register'])->middleware('throttle:10,1');
+Route::post('/login',[ApiTokenController::class,'login'])->middleware('throttle:10,1');
 Route::middleware('auth:sanctum')->group(function(){
+    Route::post('/logout',[ApiTokenController::class,'logout']);
     Route::get('/me',fn(Request $r)=>$r->user());
     Route::get('/orders/{order}',[OrderController::class,'show']);
     Route::middleware('role:customer')->group(function(){
