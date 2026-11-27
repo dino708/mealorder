@@ -17,3 +17,13 @@ Status: pending → confirmed → processing → ready → completed (paid). Can
 
 ## Upload Final
 POST multipart `image_file`; edit POST dengan `_method=PUT`, atau PUT JSON tanpa gambar. Field `image` dilarang sebagai input; response `image` berisi path relatif. 5 MB, JPG/JPEG/PNG/WebP, maksimal 4096/sisi dan 12MP; re-encode JPEG. Delete produk bertransaksi menjadi arsip. `items[].product_image` adalah snapshot. `/settings` mengembalikan `delivery_enabled`, default false. Status valid: pending, confirmed, processing, ready, completed, cancelled.
+
+## Autentikasi Token (Postman / klien non-browser)
+Selain session cookie, API menerima bearer token Laravel Sanctum. Kirim `Authorization: Bearer <token>` dan `Accept: application/json`; header CSRF tidak diperlukan untuk request bertoken.
+| Method | Path | Access | Keterangan |
+|---|---|---|---|
+| POST | /api/register | public, throttle 10/menit | name, email, phone?, password, password_confirmation. Peran selalu `customer`. 201 + token |
+| POST | /api/login | public, throttle 10/menit | email, password, device_name?. 200 + token; 401 bila kredensial salah; 422 bila input kosong |
+| POST | /api/logout | token | Mencabut token yang sedang dipakai |
+
+Koleksi uji: `docs/postman/MealOrder.postman_collection.json` dengan environment `MealOrder.postman_environment.json`. Prasyarat lokal: `MEAL_SEED_CATALOG=true` dan `MEAL_SEED_DEV_ACCOUNTS=true` di `.env`, lalu `php artisan migrate:fresh --seed` dan `php artisan serve`.
