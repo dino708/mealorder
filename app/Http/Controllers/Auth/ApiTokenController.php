@@ -14,7 +14,7 @@ use Illuminate\Validation\Rules\Password;
  */
 class ApiTokenController extends Controller
 {
-    public function register(Request $request): JsonResponseS
+    public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -25,6 +25,7 @@ class ApiTokenController extends Controller
 
         // Peran tidak pernah diterima dari input: akun baru selalu customer.
         $user = User::create($data);
+        $user->refresh(); // muat nilai bawaan database (role) ke model
 
         return response()->json([
             'token' => $user->createToken('api')->plainTextToken,
